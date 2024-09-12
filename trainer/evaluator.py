@@ -80,9 +80,9 @@ class EvaluatorFactory():
         pass
 
     @staticmethod
-    def get_evaluator(testType="rmse", cuda=True):
+    def get_evaluator(testType="rmse", cuda=True,csv_path="experiment_result.csv"):
         if testType == "rmse":
-            return DocumentMseEvaluator(cuda)
+            return DocumentMseEvaluator(cuda,csv_path)
         if testType == "cross_entropy":
             return CompleteDocEvaluator(cuda)
         if testType == 'rmse-corners':
@@ -181,10 +181,10 @@ class DocumentMseEvaluator():
     Evaluator class for softmax classification 
     '''
 
-    def __init__(self, cuda):
+    def __init__(self, cuda,csv_path):
         self.cuda = cuda
         self.table=wandb.Table(columns=["img","tl","tr","br","bl","path","total"])
-
+        self.csv_path=csv_path
     def cordinate_within_intervals(self, cordinate, x_interval, y_interval) -> int:
 
         is_within_x = (x_interval[0] <= cordinate[0] <= x_interval[1])
