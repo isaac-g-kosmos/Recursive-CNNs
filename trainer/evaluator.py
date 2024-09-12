@@ -94,7 +94,7 @@ class DocumentMseEvaluator():
 
     def __init__(self, cuda,csv_path):
         self.cuda = cuda
-        self.table=wandb.Table(columns=["img","tl","tr","br","bl","path","total"])
+        self.table=wandb.Table(columns=["img","tl","tr","br","bl","path","total","sqr-e"])
         self.csv_path=csv_path
     def cordinate_within_intervals(self, cordinate, x_interval, y_interval) -> int:
 
@@ -104,9 +104,9 @@ class DocumentMseEvaluator():
         return int(is_within_x and is_within_y)
 
 
-    def fill_table(self,imgs,results):
+    def fill_table(self,imgs,results,loss_per_batch):
 
-
+        loss_per_batch=loss_per_batch.cpu().data.numpy()
 
         for idx in range(len(imgs)):
             img=imgs[idx].cpu().data.numpy()
@@ -142,13 +142,14 @@ class DocumentMseEvaluator():
             contains_br=result["contains_br"]
             contains_bl=result["contains_bl"]
             total=result["total_corners"]
-            self.table.add_data(wandb.Image(np.array(img)),contains_tl,contains_tr,contains_br,contains_bl,path,total)
+            self.table.add_data(wandb.Image(np.array(img)),contains_tl,contains_tr,contains_br,contains_bl,path,total,loss_per_batch[idx])
 
-    def evaluate_corners(self, x_cords: np.ndarray, y_cords: np.ndarray, target: np.ndarray,paths:str) -> Dict:
+    def evaluate_corners(self, x_cords: np.ndarray, y_cords: np.ndarray, target: np.ndarray,paths:str,loss_per_example) -> Dict:
 
         target = target.cpu().data.numpy()
         target_x = target[:, [0, 2, 4, 6]]
         target_y = target[:, [1, 3, 5, 7]]
+        loss_per_example=loss_per_example.cpu().data.numpy()
         resut_dicts=[]
 
 
@@ -226,6 +227,7 @@ class DocumentMseEvaluator():
                                 bottom_left_y_upper_bound,
                                 bottom_left_x_lower_bound,
                                 bottom_left_x_upper_bound),
+                "loss": loss_per_example[entry]
             }
             resut_dicts.append(resut_dict)
         return resut_dicts
@@ -241,7 +243,9 @@ class DocumentMseEvaluator():
 
                 response = model(Variable(img))
 
-                loss = F.mse_loss(response, Variable(target.float()))
+                loss_per_example = F.mse_loss(response, Variable(target.float()), reduction='none')
+                loss_per_example=loss_per_example.mean(dim=1)
+                loss = loss_per_example.mean()
                 loss = torch.sqrt(loss)
 
                 # model_prediction = self.model(img_temp)[0]
@@ -251,10 +255,10 @@ class DocumentMseEvaluator():
                 x_cords = model_prediction[:, [0, 2, 4, 6]]
                 y_cords = model_prediction[:, [1, 3, 5, 7]]
 
-                classification_result = self.evaluate_corners(x_cords, y_cords, target,paths)
+                classification_result = self.evaluate_corners(x_cords, y_cords, target,paths,loss_per_example)
                 classification_results.extend(classification_result)
                 if table:
-                    self.fill_table(img,classification_result)
+                    self.fill_table(img,classification_result,loss_per_example)
 
                 if lossAvg is None:
                     lossAvg = loss
