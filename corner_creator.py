@@ -92,7 +92,7 @@ if __name__ == '__main__':
     if dataset=="smartdoc":
         dataset_test = dataprocessor.dataset.SmartDocDirectories(input_directory)
     elif dataset=="selfcollected":
-        dataset_test = dataprocessor.dataset.SelfCollectedDataset(input_directory)
+        dataset_test = dataprocessor.dataset.SelfCollectedDataset(input_directory, csv_type)
 
     elif dataset=="smartdoc-dataset":
         dataset_test = dataprocessor.dataset.SmartDoc([input_directory],csv_type)

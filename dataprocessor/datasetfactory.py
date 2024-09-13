@@ -14,7 +14,7 @@ class DatasetFactory:
         if type=="document":
             return data.SmartDoc(directory,csv_name)
         elif type =="corner":
-            return data.SmartDocCorner(directory)
+            return data.SmartDocCorner(directory, csv_name)
         elif type=="CIFAR":
             return torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=torchvision.transforms.ToTensor())
         elif "complete_document":

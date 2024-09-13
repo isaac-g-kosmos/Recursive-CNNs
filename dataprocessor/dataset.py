@@ -171,20 +171,20 @@ class SelfCollectedDataset(Dataset):
     Class to include MNIST specific details
     '''
 
-    def __init__(self, directory="data"):
+    def __init__(self, directory="data", csv_name="gt.csv"):
         super().__init__("smartdoc")
         self.data = []
         self.labels = []
-
-        for image in os.listdir(directory):
-            # print (image)
-            if image.endswith("jpg") or image.endswith("JPG"):
-                if os.path.isfile(os.path.join(directory, image + ".csv")):
-                    with open(os.path.join(directory, image + ".csv"), 'r') as csvfile:
+        
+        with open(os.path.join(directory, csv_name), 'r') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for image in spamreader:
+                if image[0].endswith("jpg") or image[0].endswith("JPG"):
+                    with open(os.path.join(directory, image[0] + ".csv"), 'r') as csvfile:
                         spamwriter = csv.reader(csvfile, delimiter=' ',
                                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-                        img_path = os.path.join(directory, image)
+                        img_path = os.path.join(directory, image[0])
 
                         gt = []
                         for row in spamwriter:
@@ -210,7 +210,7 @@ class SmartDocCorner(Dataset):
     Class to include MNIST specific details
     '''
 
-    def __init__(self, directory="data"):
+    def __init__(self, directory="data", csv_name="gt.csv"):
         super().__init__("smartdoc")
         self.data = []
         self.labels = []
@@ -228,7 +228,7 @@ class SmartDocCorner(Dataset):
             self.classes_list = {}
 
             file_names = []
-            with open(os.path.join(self.directory, "gt.csv"), 'r') as csvfile:
+            with open(os.path.join(self.directory, csv_name), 'r') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 import ast
                 for row in spamreader:
