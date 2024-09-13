@@ -107,7 +107,10 @@ class SmartDoc(Dataset):
         logger.debug("Ground Truth Shape: %s", str(self.labels.shape))
         logger.debug("Data shape %s", str(len(self.data)))
 
-        self.myData = [self.data, self.labels]
+        #self.myData = [self.data, self.labels]
+        self.myData = []
+        for a in range(len(self.data)):
+            self.myData.append([self.data[a], self.labels[a]])
 
 
 class SmartDocDirectories(Dataset):
@@ -115,11 +118,13 @@ class SmartDocDirectories(Dataset):
     Class to include MNIST specific details
     '''
 
-    def __init__(self, directory="data"):
+    def __init__(self, directory="data", csv_name="gt.csv"):
         super().__init__("smartdoc")
         self.data = []
         self.labels = []
-
+        with open(os.path.join(directory, csv_name), 'r') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        
         for folder in os.listdir(directory):
             if (os.path.isdir(directory + "/" + folder)):
                 for file in os.listdir(directory + "/" + folder):
@@ -134,6 +139,8 @@ class SmartDocDirectories(Dataset):
 
                         im_no = 0
                         for image in os.listdir(images_dir):
+                            
+                            
                             if image.endswith(".jpg"):
                                 # print(im_no)
                                 im_no += 1

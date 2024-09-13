@@ -81,7 +81,7 @@ if __name__ == '__main__':
     input_directory = r"C:\Users\danie\OneDrive\Desktop\Trabajo Kosmos\Recursive-CNNs\data\self collected"
     output_dir=r"C:\Users\danie\OneDrive\Desktop\Trabajo Kosmos\Recursive-CNNs\corner-datasets\self-collected-train"
 
-    dataset="selfcollected"
+    dataset="smartdoc-dataset"
     csv_type="train.csv"
 
     if not os.path.isdir(output_dir):
