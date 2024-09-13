@@ -20,8 +20,6 @@ class CornerCropper:
 
     def get_starting_points(self, img, fixed_x, fixed_y):
         h, w = img.shape[:2]
-        print(h,w)
-        print(fixed_x,fixed_y)
         # Ensure the fixed point remains within the cropped area
         min_x = max(0, fixed_x - self.crop_width)
         max_x = min(fixed_x, w - self.crop_width)
@@ -46,7 +44,7 @@ class CornerCropper:
 
 def rotate_image(image,cords ,angle):
     height,width=image.shape[:2]
-    #cords = cords * np.array([width, height])
+    cords = cords * np.array([width, height])
     new_cords = cords.copy()
     if angle==90:
         image=Image.fromarray(image).rotate(90,expand=True)
