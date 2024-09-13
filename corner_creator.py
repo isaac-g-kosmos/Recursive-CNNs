@@ -112,10 +112,10 @@ if __name__ == '__main__':
             target = label.reshape((4, 2))
             img = np.array(Image.open(img_path))
 
-            #if dataset=="selfcollected" or dataset=="smartdoc-dataset":
+            if dataset=="selfcollected" or dataset=="smartdoc-dataset":
                 # target = target / (img.shape[1], img.shape[0])
                 # target = target * (1920, 1920)
-                # img = cv2.resize(img, (1920, 1920))
+                img = cv2.resize(img, (1920, 1920))
                 #img = cv2.resize(img, (1920, 1920)) # creo que tambien debemos cambiar las coordenada de los bounding boxes
                 # fig,ax=plt.subplots()
                 # ax.imshow(img)
