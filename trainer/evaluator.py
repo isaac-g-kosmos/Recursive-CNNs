@@ -134,7 +134,9 @@ class CornerMseEvaluator():
 
                 response = model(Variable(img))
 
-                loss = F.mse_loss(response, Variable(target.float()))
+                loss_per_example = F.mse_loss(response, Variable(target.float()), reduction='none')
+                loss_per_example=loss_per_example.mean(dim=1)
+                loss = loss_per_example.mean()
                 loss = torch.sqrt(loss)
 
                 # model_prediction = self.model(img_temp)[0]
@@ -143,10 +145,12 @@ class CornerMseEvaluator():
                 
                 classification_result = []
                 for i in range(len(model_prediction)):
-                    results = {"coordinates": model_prediction[i,:],
+                    y_pred = model_prediction[i,:]
+                    y_true = target[i,:]
+                    results = {"coordinates": y_pred,
                                  "path": paths[i], 
-                                 "labels": target[i,:],
-                                 "loss": np.mean((np.array(target[i,:]) - np.array(model_prediction[i,:])) ** 2)}
+                                 "labels": y_true,
+                                 "loss":  loss_per_example[i]}
                     classification_result.append(results)
                 
                 #classification_result = self.evaluate_corners(x_cords, y_cords, target,paths)
@@ -193,14 +197,11 @@ class DocumentMseEvaluator():
         return int(is_within_x and is_within_y)
 
 
-<<<<<<< HEAD
     def fill_table(self,imgs,results,loss_per_batch):
 
         loss_per_batch=loss_per_batch.cpu().data.numpy()
 
-=======
     def fill_table(self,imgs,results):
->>>>>>> 3b13a4595d5321f2e5e9cce08ce6deb7249566ad
         for idx in range(len(imgs)):
             img=imgs[idx].cpu().data.numpy()
             img= np.transpose(img, (1, 2, 0))
