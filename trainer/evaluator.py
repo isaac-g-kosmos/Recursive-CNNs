@@ -85,16 +85,109 @@ class EvaluatorFactory():
             return DocumentMseEvaluator(cuda,csv_path)
         if testType == "cross_entropy":
             return CompleteDocEvaluator(cuda)
+        if testType == 'rmse-corners':
+            return CornerMseEvaluator(cuda)
+
+
+class CornerMseEvaluator():
+    '''
+    Evaluator class for softmax classification
+    '''
+    def __init__(self, cuda):
+        self.cuda = cuda
+        self.table=wandb.Table(columns=["img","path","label","coord", "loss"])
+
+    def cordinate_within_intervals(self, cordinate, x_interval, y_interval) -> int:
+
+        is_within_x = (x_interval[0] <= cordinate[0] <= x_interval[1])
+        is_within_y = (y_interval[0] <= cordinate[1] <= y_interval[1])
+
+        return int(is_within_x and is_within_y)
+
+    def fill_table(self,imgs,results):
+        for idx in range(len(imgs)):
+            img=imgs[idx].cpu().data.numpy()
+            img= np.transpose(img, (1, 2, 0))
+            img = (img * 255).astype(np.uint8)
+            img=Image.fromarray(img).resize((200,200))
+            # img=np.array(img)
+            result=results[idx]
+
+            coordinates=[result["coordinates"]]
+            labels=[result["labels"]]
+            path=result["path"]
+            loss=result['loss']
+
+            # for bb_ in bb_s:
+            img=highlight_coordinates(img,coordinates,"green")
+            img=highlight_coordinates(img,labels,"blue")
+            self.table.add_data(wandb.Image(np.array(img)),path, np.array(labels[0]),np.array(coordinates[0]),loss)
+
+    def evaluate(self, model, iterator, epoch,prefix,table):
+        model.eval()
+        lossAvg = None
+        classification_results=[]
+        with torch.no_grad():
+            for img, target,paths in tqdm(iterator):
+                if self.cuda:
+                    img, target = img.cuda(), target.cuda()
+
+                response = model(Variable(img))
+
+                loss_per_example = F.mse_loss(response, Variable(target.float()), reduction='none')
+                loss_per_example=loss_per_example.mean(dim=1)
+                loss = loss_per_example.mean()
+                loss = torch.sqrt(loss)
+
+                # model_prediction = self.model(img_temp)[0]
+
+                model_prediction = np.array(response.cpu().data.numpy())
+
+                classification_result = []
+                for i in range(len(model_prediction)):
+                    y_pred = model_prediction[i,:]
+                    y_true = target.cpu().data.numpy()[i,:]
+                    results = {"coordinates": y_pred,
+                                 "path": paths[i],
+                                 "labels": y_true,
+                                 "loss":  loss_per_example[i]}
+                    classification_result.append(results)
+
+                #classification_result = self.evaluate_corners(x_cords, y_cords, target,paths)
+                classification_results.extend(classification_result)
+                if table:
+                    self.fill_table(img,classification_result)
+
+                if lossAvg is None:
+                    lossAvg = loss
+                else:
+                    lossAvg += loss
+                # logger.debug("Cur loss %s", str(loss))
+        #df=pd.DataFrame(classification_results)
+
+        #df.to_csv(r"/home/ubuntu/document_localization/Recursive-CNNs/predictions.csv")
+
+        lossAvg /= len(iterator)
+
+        wandb.log({"epoch": epoch,
+                   prefix+"eval_loss": lossAvg,
+                   #prefix+"accuracy": accuracy,
+                   })
+        # logger.info("Avg Val Loss %s", str((lossAvg).cpu().data.numpy()))
+        if table:
+            wandb.log({prefix+"table":self.table})
+        #return accuracy
+
 
 
 class DocumentMseEvaluator():
     '''
-    Evaluator class for softmax classification 
+    Evaluator class for softmax classification
     '''
 
     def __init__(self, cuda,csv_path,leeway):
         self.cuda = cuda
-        self.table=wandb.Table(columns=["img","tl","tr","br","bl","path","total"])
+        self.table=wandb.Table(columns=["img","tl","tr","br","bl","path","total","sqr-e"])
         self.csv_path=csv_path
         self.leeway=leeway
 
@@ -121,11 +214,8 @@ class DocumentMseEvaluator():
         # Vectorized area calculation
         return width * height
 
-
-    def fill_table(self,imgs,results):
-
-
-
+    def fill_table(self, imgs, results, loss_per_batch):
+        loss_per_batch = loss_per_batch.cpu().data.numpy()
         for idx in range(len(imgs)):
             img=imgs[idx].cpu().data.numpy()
             img= np.transpose(img, (1, 2, 0))
@@ -160,9 +250,9 @@ class DocumentMseEvaluator():
             contains_br=result["contains_br"]
             contains_bl=result["contains_bl"]
             total=result["total_corners"]
-            self.table.add_data(wandb.Image(np.array(img)),contains_tl,contains_tr,contains_br,contains_bl,path,total)
+            self.table.add_data(wandb.Image(np.array(img)),contains_tl,contains_tr,contains_br,contains_bl,path,total,loss_per_batch[idx])
 
-    def evaluate_corners(self, x_cords: np.ndarray, y_cords: np.ndarray, target: np.ndarray,paths:str,
+    def evaluate_corners(self, x_cords: np.ndarray, y_cords: np.ndarray, target: np.ndarray,paths:str,loss_per_example,
                          leeway) -> Dict:
 
         target = target.cpu().data.numpy()
@@ -172,6 +262,7 @@ class DocumentMseEvaluator():
 
         target_x = target[:, [0, 2, 4, 6]]
         target_y = target[:, [1, 3, 5, 7]]
+        loss_per_example = loss_per_example.cpu().data.numpy()
 
         doc_width = (self.euclidean_distance_np(x0, y0, x1, y1) + self.euclidean_distance_np(x3, y3, x2, y2)) / 2
         doc_height = (self.euclidean_distance_np(x0, y0, x3, y3) + self.euclidean_distance_np(x1, y1, x2, y2)) / 2
@@ -297,6 +388,7 @@ class DocumentMseEvaluator():
                                 partitions_dictionary["bottom_left"][1][idx],
                                 partitions_dictionary["bottom_left"][2][idx],
                                 partitions_dictionary["bottom_left"][3][idx]),
+               "loss": loss_per_example[idx]
             }
             result_dicts.append(result_dict)
         return result_dicts
@@ -312,7 +404,9 @@ class DocumentMseEvaluator():
 
                 response = model(Variable(img))
 
-                loss = F.mse_loss(response, Variable(target.float()))
+                loss_per_example = F.mse_loss(response, Variable(target.float()), reduction='none')
+                loss_per_example=loss_per_example.mean(dim=1)
+                loss = loss_per_example.mean()
                 loss = torch.sqrt(loss)
 
                 # model_prediction = self.model(img_temp)[0]
@@ -322,10 +416,10 @@ class DocumentMseEvaluator():
                 x_cords = model_prediction[:, [0, 2, 4, 6]]
                 y_cords = model_prediction[:, [1, 3, 5, 7]]
 
-                classification_result = self.evaluate_corners(x_cords, y_cords, target,paths,self.leeway)
+                classification_result = self.evaluate_corners(x_cords, y_cords, target,paths,loss_per_example)
                 classification_results.extend(classification_result)
                 if table:
-                    self.fill_table(img,classification_result)
+                    self.fill_table(img,classification_result,loss_per_example)
 
                 if lossAvg is None:
                     lossAvg = loss
