@@ -202,12 +202,22 @@ my_trainer = trainer.Trainer(train_iterator, myModel, cuda, optimizer)
 
 # Evaluator
 my_eval = trainer.EvaluatorFactory.get_evaluator("rmse-corners", cuda)
-# Running epochs_class epochs
+
+minumim_loss=None
+
 for epoch in range(0, epochs):
     logger.info("Epoch : %d", epoch)
     my_trainer.update_lr(epoch, schedule, gammas)
     my_trainer.train(epoch)
-    my_eval.evaluate(my_trainer.model, val_iterator,epoch, "", True)
+    loss=my_eval.evaluate(my_trainer.model, val_iterator,epoch, "", True)
+
+    if minumim_loss is None:
+        minumim_loss = loss
+    elif minumim_loss>loss:
+        minumim_loss = loss
+        torch.save(myModel.state_dict(), my_experiment.path + dataset_type + "_" + model_type + f"best_{epoch}" + ".pb")
+        wandb.log({"minimum_loss": minumim_loss,
+                   "epoch": epoch})
 
 torch.save(myModel.state_dict(), my_experiment.path + dataset_type + "_" + model_type+ ".pb")
 my_experiment.store_json()

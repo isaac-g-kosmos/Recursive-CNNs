@@ -162,6 +162,7 @@ class CornerMseEvaluator():
                     lossAvg = loss
                 else:
                     lossAvg += loss
+
                 # logger.debug("Cur loss %s", str(loss))
         #df=pd.DataFrame(classification_results)
 
@@ -177,7 +178,8 @@ class CornerMseEvaluator():
         if table:
             wandb.log({prefix+"table":self.table})
         #return accuracy
-    
+
+        return lossAvg
     
 
 class DocumentMseEvaluator():
