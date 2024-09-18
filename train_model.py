@@ -43,7 +43,7 @@ pretrain = False
 lr = 0.005
 batch_size = 500
 seed = 42
-
+leeway=0.28600
 decay = 0.00001
 
 epochs = 75
@@ -64,6 +64,7 @@ arguments = {
     "seed": seed,
     "decay": decay,
     "epochs": epochs,
+    "leeway": leeway
 }
 # wandb.login(key=[your_api_key])
 wandb.init(project="document-detection",
@@ -147,7 +148,7 @@ optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, myModel.parameter
 my_trainer = trainer.Trainer_with_class(train_iterator, myModel, cuda, optimizer)
 
 # Evaluator
-my_eval = trainer.EvaluatorFactory.get_evaluator("rmse", cuda)
+my_eval = trainer.EvaluatorFactory.get_evaluator("rmse", cuda,leeway)
 
 max_accuracy=0
 

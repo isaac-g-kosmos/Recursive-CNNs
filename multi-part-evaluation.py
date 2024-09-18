@@ -6,16 +6,18 @@ import evaluation
 from PIL import Image
 from document_localization_metrics import DocumentLocalizationMetrics
 import pandas as pd
+
+
 cornerModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\cornerModelPyTorch"
-documentModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\experiments882024\Validation_run_12\Validation_rundocument_resnet.pb"
+documentModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\experiment-7-doc\Experiment-7-docdocument_resnetbest_59.pb"
 corners_extractor = evaluation.corner_extractor.GetCorners(documentModel_path)
 corner_refiner = evaluation.corner_refiner.corner_finder(cornerModel_path)
 from page_extractor import PageExtractor
 from document_localization_utils import DocumentVisualization
 
-extractor_object = PageExtractor(
-    r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\cornerModelPyTorch",
-    r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\documentModelPyTorch")
+# extractor_object = PageExtractor(
+#     r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\cornerModelPyTorch",
+#     r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\documentModelPyTorch")
 
 dataset = dataprocessor.DatasetFactory.get_dataset(
     [r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\testDataset\smart-doc-train"],
@@ -112,31 +114,10 @@ def append_bounding_boxes(extracted_corners,labeled_corners):
 
 
 
-# %%
 
-path=path[:3975]
-top_left_interval_x_s=top_left_interval_x_s[:3975]
-bottom_left_interval_x_s=bottom_left_interval_x_s[:3975]
-bottom_right_interval_x_s=bottom_right_interval_x_s[:3975]
-top_right_interval_x_s=top_right_interval_x_s[:3975]
-top_left_interval_y_s=top_left_interval_y_s[:3975]
-bottom_left_interval_y_s=bottom_left_interval_y_s[:3975]
-bottom_right_interval_y_s=bottom_right_interval_y_s[:3975]
-top_right_interval_y_s=top_right_interval_y_s[:3975]
-top_left_second_phase=top_left_second_phase[:3975]
-bottom_left_second_phase=bottom_left_second_phase[:3975]
-bottom_right_second_phase=bottom_right_second_phase[:3975]
-top_right_second_phase=top_right_second_phase[:3975]
-top_left_second_phase_inside=top_left_second_phase_inside[:3975]
-bottom_left_second_phase_inside=bottom_left_second_phase_inside[:3975]
-bottom_right_second_phase_inside=bottom_right_second_phase_inside[:3975]
-top_right_second_phase_inside=top_right_second_phase_inside[:3975]
-IoUs=IoUs[:3975]
-recalls=recalls[:3975]
-precisions=precisions[:3975]
 #%%
-for img_path, label in zip(dataset.myData[0][3978:], dataset.myData[1][3978:]):
-
+for img_path, label in zip(dataset.myData[0], dataset.myData[1]):
+    print(img_path)
     path.append(img_path)
 
     # _,warped=extractor_object.extract_document(img_path, .85)
@@ -161,7 +142,7 @@ for img_path, label in zip(dataset.myData[0][3978:], dataset.myData[1][3978:]):
     # plt.show()
     oImg = img.copy()
 
-    extracted_corners = corners_extractor.get(oImg, True)
+    extracted_corners = corners_extractor.get(oImg, 0.28600)
 
     append_bounding_boxes(extracted_corners,label)
 
@@ -202,6 +183,7 @@ for img_path, label in zip(dataset.myData[0][3978:], dataset.myData[1][3978:]):
         IoUs.append(0)
         recalls.append(0)
         precisions.append(0)
+
     # rect, warped = extractor_object.extract_document(img_path, .85)
     # dims = extractor_object.img.shape
     # rect = [(cordinate[1] / dims[0], cordinate[0] / dims[1]) for cordinate in rect]
@@ -214,6 +196,7 @@ for img_path, label in zip(dataset.myData[0][3978:], dataset.myData[1][3978:]):
     # # # plt.show()
     # # plt.imshow(original_img)
     # # plt.show()
+# 1/0
 #%%
 df=pd.DataFrame({
     "path": path,
@@ -243,4 +226,4 @@ df["recall"]=recalls
 df["precisions"]=precisions
 
 
-df.to_csv("results2.csv",index=False)
+df.to_csv("results3.csv",index=False)
