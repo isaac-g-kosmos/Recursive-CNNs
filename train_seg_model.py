@@ -61,23 +61,23 @@ import utils
 
 experiment_names = "corner-refinement-experiment-1"
 
-output_dir = r"C:\Users\danie\OneDrive\Desktop\Trabajo Kosmos\Recursive-CNNs\experiments"
-no_cuda = True
+output_dir = r"/home/ubuntu/document-localization/Recursive-CNNs/experiments"
+no_cuda = False
 data_dirs = [
-    r"C:\Users\danie\OneDrive\Desktop\Trabajo Kosmos\Recursive-CNNs\corner-datasets\self-collected-train",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\kosmos-train",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\self-collected-train",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\smart-doc-train",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/self-collected-train",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/kosmos-train",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/augmentations-train",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/smart-doc-train-train",
 ]
 
 dataset_type = "corner"
 validation_dirs = [
-    r"C:\Users\danie\OneDrive\Desktop\Trabajo Kosmos\Recursive-CNNs\corner-datasets\self-collected-train",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\kosmos-test",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\self-collected-test",
-    #r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\corner-datasets\smart-doc-test",
-
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/self-collected-test",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/kosmos-test",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/augmentations-test",
+    r"/home/ubuntu/document-localization/Recursive-CNNs/corner_datasets/smart-doc-train-test",
 ]
+
 loader = "ram"
 
 model_type = "resnet"
@@ -85,7 +85,7 @@ model_type = "resnet"
 pretrain = False
 
 lr = 0.005
-batch_size = 15
+batch_size = 500
 seed = 42
 
 momentum = 0.9
@@ -93,7 +93,7 @@ decay = 0.00001
 
 gammas = [0.2, 0.2, 0.2]
 
-epochs = 1
+epochs = 75
 schedule = [10, 20, 30]
 cuda = not no_cuda and torch.cuda.is_available()
 
@@ -117,7 +117,7 @@ arguments = {
     "schedule": schedule,
 }
 
-wandb.init(project="corner-detection",
+wandb.init(project="corner-refinement",
            entity="daniel-reyes-kosmos-kosmos",
            config=arguments)
 
@@ -150,7 +150,7 @@ train_dataset_loader = dataprocessor.LoaderFactory.get_loader(loader, dataset.my
 val_dataset_loader = dataprocessor.LoaderFactory.get_loader(loader, dataset_val.myData,
                                                             transform=dataset.test_transform,
                                                             cuda=cuda)
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+kwargs = {'num_workers': 50, 'pin_memory': True} if cuda else {}
 
 # Iterator to iterate over training data.
 train_iterator = torch.utils.data.DataLoader(train_dataset_loader,

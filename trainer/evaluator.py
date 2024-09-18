@@ -146,7 +146,7 @@ class CornerMseEvaluator():
                 classification_result = []
                 for i in range(len(model_prediction)):
                     y_pred = model_prediction[i,:]
-                    y_true = target[i,:]
+                    y_true = target.cpu().data.numpy()[i,:]
                     results = {"coordinates": y_pred,
                                  "path": paths[i], 
                                  "labels": y_true,
