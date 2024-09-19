@@ -85,7 +85,9 @@ class EvaluatorFactory():
             return DocumentMseEvaluator(cuda,csv_path)
         if testType == "cross_entropy":
             return CompleteDocEvaluator(cuda)
-          
+          if testType == "rmse-corners":
+            return CornerMseEvaluator(cuda) 
+                                        
 class CornerMseEvaluator():
     '''
     Evaluator class for softmax classification 
