@@ -209,7 +209,10 @@ for epoch in range(0, epochs):
     logger.info("Epoch : %d", epoch)
     my_trainer.update_lr(epoch, schedule, gammas)
     my_trainer.train(epoch)
-    loss=my_eval.evaluate(my_trainer.model, val_iterator,epoch, "", True)
+    if epoch == epochs - 1:
+        loss=my_eval.evaluate(my_trainer.model, val_iterator,epoch, "Test", True)
+    else:
+        loss=my_eval.evaluate(my_trainer.model, val_iterator,epoch, "Val", False)
 
     if minumim_loss is None:
         minumim_loss = loss
