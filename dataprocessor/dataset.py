@@ -107,10 +107,10 @@ class SmartDoc(Dataset):
         logger.debug("Ground Truth Shape: %s", str(self.labels.shape))
         logger.debug("Data shape %s", str(len(self.data)))
 
-        #self.myData = [self.data, self.labels]
-        self.myData = []
-        for a in range(len(self.data)):
-            self.myData.append([self.data[a], self.labels[a]])
+        self.myData = [self.data, self.labels]
+        #self.myData = []
+        #for a in range(len(self.data)):
+        #    self.myData.append([self.data[a], self.labels[a]])
 
 
 class SmartDocDirectories(Dataset):
