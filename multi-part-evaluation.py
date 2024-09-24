@@ -8,8 +8,8 @@ from document_localization_metrics import DocumentLocalizationMetrics
 import pandas as pd
 
 
-cornerModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\cornerModelPyTorch"
-documentModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\experiment-7-doc\Experiment-7-docdocument_resnetbest_59.pb"
+cornerModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\best_experiments\corner-refinement-experiment-2corner_resnetbest_21.pb"
+documentModel_path = r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\best_experiments\Experiment-11-docdocument_resnetbest_64.pb"
 corners_extractor = evaluation.corner_extractor.GetCorners(documentModel_path)
 corner_refiner = evaluation.corner_refiner.corner_finder(cornerModel_path)
 from page_extractor import PageExtractor
@@ -20,7 +20,11 @@ from document_localization_utils import DocumentVisualization
 #     r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\model-data\documentModelPyTorch")
 
 dataset = dataprocessor.DatasetFactory.get_dataset(
-    [r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\testDataset\smart-doc-train"],
+    [r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\testDataset\smart-doc-train",
+             r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\self-collected",
+             r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\kosmos-dataset",
+             r"C:\Users\isaac\PycharmProjects\document_localization\Recursive-CNNs\datasets\augmentations",
+             ],
     "document",
     "test.csv")
 
@@ -116,7 +120,7 @@ def append_bounding_boxes(extracted_corners,labeled_corners):
 
 
 #%%
-for img_path, label in zip(dataset.myData[0], dataset.myData[1]):
+for img_path, label in zip([x[0] for x in dataset.myData], [x[1] for x in dataset.myData]):
     print(img_path)
     path.append(img_path)
 
@@ -156,8 +160,8 @@ for img_path, label in zip(dataset.myData[0], dataset.myData[1]):
         refined_corner = np.array(corner_refiner.get_location(corner_img, float(.85)))
 
         # Converting from local co-ordinate to global co-ordinates of the image
-        refined_corner[0] += corner[1]
-        refined_corner[1] += corner[2]
+        refined_corner[0] += corner[3]
+        refined_corner[1] += corner[1]
 
         # Final results
         corner_address.append(refined_corner)
@@ -176,6 +180,8 @@ for img_path, label in zip(dataset.myData[0], dataset.myData[1]):
     # plt.show()
     try:
         Iou, recall, precision = DocumentLocalizationMetrics().calculate_metrics(rect, label)
+        print("Iou:",Iou,"recall:",recall,"precision:",precision,)
+
         IoUs.append(Iou)
         recalls.append(recall)
         precisions.append(precision)
@@ -226,4 +232,40 @@ df["recall"]=recalls
 df["precisions"]=precisions
 
 
-df.to_csv("results3.csv",index=False)
+
+#%%
+print("IoU:",df["IoU"].mean())
+print("recall:",df["recall"].mean())
+print("precisions:",df["precisions"].mean())
+#%%
+#%%
+
+
+datasets_list=["testDataset",
+"kosmos-dataset",
+"augmentations"]
+
+
+
+# df_=df_[df_["dataset"]!="augmentations"]
+for dataset_name in  datasets_list:
+    df_ = df.copy()
+    df_["dataset"] = df_["path"].apply(lambda x: x.split("\\")[7])
+
+    print(dataset_name,":")
+    df_=df_[df_["dataset"]==dataset_name]
+    print("IoU:",df_["IoU"].mean())
+    print("recall:",df_["recall"].mean())
+    print("precisions:",df_["precisions"].mean())
+    print("\n")
+#%%
+plt.hist(df["IoU"])
+plt.title("IoU")
+plt.show()
+plt.hist(df["recall"])
+plt.title("recall")
+plt.show()
+plt.hist(df["precisions"])
+plt.title("precisions")
+plt.show()
+df_.to_csv("results_doc11+corners2.csv",index=False)

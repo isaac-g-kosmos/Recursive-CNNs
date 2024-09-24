@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from PIL import Image
 from torchvision import transforms
+import matplotlib.pyplot as plt
+
 
 import model
 
@@ -157,28 +159,39 @@ class GetCorners:
                           int(partitions_dictionary["bottom_left"][2] * image_array.shape[1]):int(
                               partitions_dictionary["bottom_left"][3] * image_array.shape[1])]
 
+            # plt.imshow(top_left)
+            # plt.show()
+            # plt.imshow(top_right)
+            # plt.show()
+            # plt.imshow(bottom_right)
+            # plt.show()
+            # plt.imshow(bottom_left)
+            # plt.show()
+
+
+
             top_left = (top_left,
-                        partitions_dictionary["top_left"][0],
-                        partitions_dictionary["top_left"][1],
-                        partitions_dictionary["top_left"][2],
-                        partitions_dictionary["top_left"][3])
+                        partitions_dictionary["top_left"][0]*image_array.shape[0],
+                        partitions_dictionary["top_left"][1]*image_array.shape[0],
+                        partitions_dictionary["top_left"][2]*image_array.shape[1],
+                        partitions_dictionary["top_left"][3]*image_array.shape[1])
 
             top_right = (top_right,
-                         partitions_dictionary["top_right"][0],
-                         partitions_dictionary["top_right"][1],
-                         partitions_dictionary["top_right"][2],
-                         partitions_dictionary["top_right"][3])
+                         partitions_dictionary["top_right"][0]*image_array.shape[0],
+                         partitions_dictionary["top_right"][1]*image_array.shape[0],
+                         partitions_dictionary["top_right"][2]*image_array.shape[1],
+                         partitions_dictionary["top_right"][3]*image_array.shape[1])
 
             bottom_right = (bottom_right,
-                            partitions_dictionary["bottom_right"][0],
-                            partitions_dictionary["bottom_right"][1],
-                            partitions_dictionary["bottom_right"][2],
-                            partitions_dictionary["bottom_right"][3])
+                            partitions_dictionary["bottom_right"][0]*image_array.shape[0],
+                            partitions_dictionary["bottom_right"][1]*image_array.shape[0],
+                            partitions_dictionary["bottom_right"][2]*image_array.shape[1],
+                            partitions_dictionary["bottom_right"][3]*image_array.shape[1])
 
             bottom_left = (bottom_left,
-                           partitions_dictionary["bottom_left"][0],
-                           partitions_dictionary["bottom_left"][1],
-                           partitions_dictionary["bottom_left"][2],
-                           partitions_dictionary["bottom_left"][3])
+                           partitions_dictionary["bottom_left"][0]*image_array.shape[0],
+                           partitions_dictionary["bottom_left"][1]*image_array.shape[0],
+                           partitions_dictionary["bottom_left"][2]*image_array.shape[1],
+                           partitions_dictionary["bottom_left"][3]*image_array.shape[1])
 
             return top_left, top_right, bottom_right, bottom_left

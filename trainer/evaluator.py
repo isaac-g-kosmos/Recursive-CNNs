@@ -319,12 +319,17 @@ class DocumentMseEvaluator():
                 x_lower_bound,
                 x_upper_bound) < .05
 
-            new_y_lower_bound = predicted_cordinates[1][BB_area_boolean_mask] - leeway * doc_height[
+            new_y_lower_bound=current_bb[0]
+            new_y_upper_bound=current_bb[1]
+            new_x_lower_bound=current_bb[2]
+            new_x_upper_bound=current_bb[3]
+
+            new_y_lower_bound[BB_area_boolean_mask]  = predicted_cordinates[1][BB_area_boolean_mask] - leeway * doc_height[
                 BB_area_boolean_mask]
-            new_y_upper_bound = predicted_cordinates[1][BB_area_boolean_mask] + leeway * doc_height[
+            new_y_upper_bound[BB_area_boolean_mask]  = predicted_cordinates[1][BB_area_boolean_mask] + leeway * doc_height[
                 BB_area_boolean_mask]
-            new_x_lower_bound = predicted_cordinates[0][BB_area_boolean_mask] - leeway * doc_width[BB_area_boolean_mask]
-            new_x_upper_bound = predicted_cordinates[0][BB_area_boolean_mask] + leeway * doc_width[BB_area_boolean_mask]
+            new_x_lower_bound[BB_area_boolean_mask]  = predicted_cordinates[0][BB_area_boolean_mask] - leeway * doc_width[BB_area_boolean_mask]
+            new_x_upper_bound[BB_area_boolean_mask]  = predicted_cordinates[0][BB_area_boolean_mask] + leeway * doc_width[BB_area_boolean_mask]
 
             partitions_dictionary[key] = [
                 new_y_lower_bound,
