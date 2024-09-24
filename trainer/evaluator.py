@@ -80,9 +80,9 @@ class EvaluatorFactory():
         pass
 
     @staticmethod
-    def get_evaluator(testType="rmse", cuda=True,csv_path="experiment_result.csv"):
+    def get_evaluator(testType="rmse", cuda=True,csv_path="experiment_result.csv", leeway=-1):
         if testType == "rmse":
-            return DocumentMseEvaluator(cuda,csv_path)
+            return DocumentMseEvaluator(cuda,csv_path,leeway)
         if testType == "cross_entropy":
             return CompleteDocEvaluator(cuda)
           if testType == "rmse-corners":
@@ -310,23 +310,23 @@ class DocumentMseEvaluator():
             current_bb = partitions_dictionary[key]
             predicted_cordinates = current_bb[4]
 
-            y_lower_bound = current_bb[0]
-            y_upper_bound = current_bb[1]
-            x_lower_bound = current_bb[2]
-            x_upper_bound = current_bb[3]
+            new_y_lower_bound = current_bb[0]
+            new_y_upper_bound = current_bb[1]
+            new_x_lower_bound = current_bb[2]
+            new_x_upper_bound = current_bb[3]
 
             BB_area_boolean_mask = self.calculate_area_vect(
-                y_lower_bound,
-                y_upper_bound,
-                x_lower_bound,
-                x_upper_bound) < .05
+                new_y_lower_bound,
+                new_y_upper_bound,
+                new_x_lower_bound,
+                new_x_upper_bound) < .05
 
-            new_y_lower_bound = predicted_cordinates[1][BB_area_boolean_mask] - leeway * doc_height[
+            new_y_lower_bound[BB_area_boolean_mask] = predicted_cordinates[1][BB_area_boolean_mask] - leeway * doc_height[
                 BB_area_boolean_mask]
-            new_y_upper_bound = predicted_cordinates[1][BB_area_boolean_mask] + leeway * doc_height[
+            new_y_upper_bound[BB_area_boolean_mask] = predicted_cordinates[1][BB_area_boolean_mask] + leeway * doc_height[
                 BB_area_boolean_mask]
-            new_x_lower_bound = predicted_cordinates[0][BB_area_boolean_mask] - leeway * doc_width[BB_area_boolean_mask]
-            new_x_upper_bound = predicted_cordinates[0][BB_area_boolean_mask] + leeway * doc_width[BB_area_boolean_mask]
+            new_x_lower_bound[BB_area_boolean_mask] = predicted_cordinates[0][BB_area_boolean_mask] - leeway * doc_width[BB_area_boolean_mask]
+            new_x_upper_bound[BB_area_boolean_mask] = predicted_cordinates[0][BB_area_boolean_mask] + leeway * doc_width[BB_area_boolean_mask]
 
             partitions_dictionary[key] = [
                 new_y_lower_bound,
@@ -356,6 +356,11 @@ class DocumentMseEvaluator():
              (partitions_dictionary["bottom_left"][2] <= target_x[:, 3]) & (
                          target_x[:, 3] <= partitions_dictionary["bottom_left"][3])
 
+        tl = tl.astype('int')
+        tr = tr.astype('int')
+        br = br.astype('int')
+        bl = bl.astype('int')
+                          
         result_dicts=[]
         for idx in range(len(paths)):
 
@@ -427,7 +432,7 @@ class DocumentMseEvaluator():
                 # logger.debug("Cur loss %s", str(loss))
         df=pd.DataFrame(classification_results)
 
-        df.to_csv(self.csv_path,index=False)
+        #df.to_csv(self.csv_path,index=False)
 
         lossAvg /= len(iterator)
         total_corners=df["total_corners"]
