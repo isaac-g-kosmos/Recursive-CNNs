@@ -145,10 +145,10 @@ if pretrain:
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, myModel.parameters()), lr=lr, weight_decay=decay)
 
 # Trainer object used for training
-my_trainer = trainer.Trainer_with_class(train_iterator, myModel, cuda, optimizer)
+my_trainer = trainer.Trainer_with_class(train_iterator, myModel, cuda, optimizer, 'mse', leeway)
 
 # Evaluator
-my_eval = trainer.EvaluatorFactory.get_evaluator("rmse", cuda,leeway)
+my_eval = trainer.EvaluatorFactory.get_evaluator("rmse", cuda,,"experiment_result.csv",leeway)
 
 max_accuracy=0
 
