@@ -85,7 +85,7 @@ class EvaluatorFactory():
             return DocumentMseEvaluator(cuda,csv_path,leeway)
         if testType == "cross_entropy":
             return CompleteDocEvaluator(cuda)
-          if testType == "rmse-corners":
+        if testType == "rmse-corners":
             return CornerMseEvaluator(cuda) 
                                         
 class CornerMseEvaluator():
